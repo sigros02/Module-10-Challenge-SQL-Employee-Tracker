@@ -1,13 +1,13 @@
-import Employee from "./classes/Employee.js";
+// import Employee from "./classes/Employee.js";
 import Cli from "./classes/Cli.js";
 
-const employees = [];
+// const employees = [];
 
-const employee = new Employee("John", "Doe", 1, 1);
+// const employee = new Employee("John", "Doe", 1, 1);
 
-employees.push(employee);
-console.log(employees);
+// employees.push(employee);
+// console.log(employees);
 
-// const cli = new Cli(employees);
+const cli = new Cli();
 
-// cli.startCli();
+cli.startCli();

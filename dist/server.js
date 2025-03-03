@@ -6,41 +6,6 @@ const app = express();
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.get("/api/movies", (_req, res) => {
-    pool.query("SELECT * FROM movies", (_err, result) => {
-        res.json(result.rows);
-    });
-});
-app.post("/api/add-movies", (req, res) => {
-    const movie_name = req.body.movie_name;
-    pool.query("INSERT INTO movies (movie_name) VALUES ($1)", [movie_name], (err, _result) => {
-        if (err) {
-            res.status(500).json(err);
-        }
-        res.json(`"${movie_name}" successfully added`);
-    });
-});
-// // Hardcoded query: DELETE FROM course_names WHERE id = 3;
-// pool.query(
-//   `DELETE FROM course_names WHERE id = $1, $2`,
-//   [1, 6],
-//   (err: Error, result: QueryResult) => {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       console.log(`${result.rowCount} row(s) deleted!`);
-//     }
-//   }
-// );
-// Query database
-pool.query("SELECT * FROM course_names", (err, result) => {
-    if (err) {
-        console.log(err);
-    }
-    else if (result) {
-        console.log(result.rows);
-    }
-});
 // Default response for any other request (Not Found)
 app.use((_req, res) => {
     res.status(404).end();
@@ -48,3 +13,22 @@ app.use((_req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+export const selectAllEmployees = async () => {
+    try {
+        const result = await pool.query("SELECT * FROM employee");
+        return result.rows;
+    }
+    catch (err) {
+        console.error(err);
+        throw new Error("Failed to retrieve employees");
+    }
+};
+export const insertEmployee = async (firstName, lastName, roleID, managerID) => {
+    try {
+        await pool.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)", [firstName, lastName, roleID, managerID]);
+        console.log("Employee added successfully");
+    }
+    catch (err) {
+        console.error(err);
+    }
+};
