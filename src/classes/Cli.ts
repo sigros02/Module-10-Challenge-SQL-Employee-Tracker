@@ -68,7 +68,13 @@ class Cli {
           answers.managerID
         );
         this.employees.push(employee);
-        // console.log(this.employees);
+        insertEmployee(
+          answers.firstName,
+          answers.lastName,
+          answers.roleID,
+          answers.managerID
+        );
+        this.viewEmployees();
         this.startCli();
       });
   }

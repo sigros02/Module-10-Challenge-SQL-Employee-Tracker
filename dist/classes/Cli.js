@@ -1,6 +1,6 @@
 import inquirer from "inquirer";
 import Employee from "./Employee.js";
-import { selectAllEmployees } from "../server.js";
+import { selectAllEmployees, insertEmployee } from "../server.js";
 class Cli {
     constructor() {
         this.employees = [];
@@ -56,8 +56,12 @@ class Cli {
         ])
             .then((answers) => {
             const employee = new Employee(answers.firstName, answers.lastName, answers.roleID, answers.managerID);
+            console.log("********** Before insertEmployee **********");
+            this.viewEmployees();
             this.employees.push(employee);
-            // console.log(this.employees);
+            insertEmployee(answers.firstName, answers.lastName, answers.roleID, answers.managerID);
+            console.log("********** After insertEmployee **********");
+            this.viewEmployees();
             this.startCli();
         });
     }
