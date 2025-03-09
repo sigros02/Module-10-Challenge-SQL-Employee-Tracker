@@ -1,31 +1,48 @@
 import inquirer from "inquirer";
 import Employee from "./Employee.js";
+import Role from "./role.js";
+import Department from "./department.js";
 import { selectAllEmployees, insertEmployee } from "../server.js";
 
 class Cli {
-  employees: Employee[];
-
-  constructor() {
-    this.employees = [];
-  }
-
-  buildEmployeesArray(): Promise<void> {
-    return selectAllEmployees()
-      .then((employees) => {
-        this.employees = employees;
-      })
-      .catch((error) => {
-        console.error("Error fetching employees:", error);
-      });
+  async buildEmployeesArray(): Promise<Employee[]> {
+    const result = await selectAllEmployees();
+    return result.rows.map((row) => {
+      const department = new Department(row.departmentid, row.department);
+      const role = new Role(row.roleid, row.title, row.salary, department);
+      return new Employee(
+        row.employeeid,
+        row.firstname,
+        row.lastname,
+        role,
+        row.managerid,
+        row.managername
+      );
+    });
   }
 
   async viewEmployees(): Promise<void> {
-    await this.buildEmployeesArray();
-    console.table(this.employees);
+    try {
+      const result = await selectAllEmployees();
+      console.table(result.rows, [
+        "employeeid",
+        "firstname",
+        "lastname",
+        "title",
+        "department",
+        "salary",
+        "managername",
+      ]);
+      // const employees = await this.buildEmployeesArray();
+      // console.log(`***************************`);
+      // console.table(employees.map((employee) => employee.toArray()));
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
     this.startCli();
   }
 
-  createEmployee(): void {
+  async createEmployeePrompt(): Promise<void> {
     inquirer
       .prompt([
         {
@@ -52,8 +69,6 @@ class Cli {
             { name: "7: Lawyer", value: 7 },
           ],
         },
-        // Need to consider if this is the best way to handle manager ID
-        // Should the manager ID be assigned somehow?
         {
           type: "input",
           name: "managerID",
@@ -61,22 +76,19 @@ class Cli {
         },
       ])
       .then((answers) => {
-        const employee = new Employee(
-          answers.firstName,
-          answers.lastName,
-          answers.roleID,
-          answers.managerID
-        );
-        this.employees.push(employee);
-        insertEmployee(
-          answers.firstName,
-          answers.lastName,
-          answers.roleID,
-          answers.managerID
-        );
-        this.viewEmployees();
-        this.startCli();
+        this.createEmployeeFromAnswers(answers);
       });
+  }
+
+  async createEmployeeFromAnswers(answers: any): Promise<void> {
+    await insertEmployee(
+      answers.firstName,
+      answers.lastName,
+      answers.roleID,
+      answers.managerID
+    );
+    this.viewEmployees();
+    this.startCli();
   }
 
   startCli(): void {
@@ -94,7 +106,7 @@ class Cli {
         if (answers.Options === "View all employees") {
           this.viewEmployees();
         } else if (answers.Options === "Create a new employee") {
-          this.createEmployee();
+          this.createEmployeePrompt();
         }
       });
   }

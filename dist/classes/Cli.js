@@ -1,25 +1,39 @@
 import inquirer from "inquirer";
 import Employee from "./Employee.js";
+import Role from "./role.js";
+import Department from "./department.js";
 import { selectAllEmployees, insertEmployee } from "../server.js";
 class Cli {
-    constructor() {
-        this.employees = [];
-    }
-    buildEmployeesArray() {
-        return selectAllEmployees()
-            .then((employees) => {
-            this.employees = employees;
-        })
-            .catch((error) => {
-            console.error("Error fetching employees:", error);
+    async buildEmployeesArray() {
+        const result = await selectAllEmployees();
+        return result.rows.map((row) => {
+            const department = new Department(row.departmentid, row.department);
+            const role = new Role(row.roleid, row.title, row.salary, department);
+            return new Employee(row.employeeid, row.firstname, row.lastname, role, row.managerid, row.managername);
         });
     }
     async viewEmployees() {
-        await this.buildEmployeesArray();
-        console.table(this.employees);
+        try {
+            const result = await selectAllEmployees();
+            console.table(result.rows, [
+                "employeeid",
+                "firstname",
+                "lastname",
+                "title",
+                "department",
+                "salary",
+                "managername",
+            ]);
+            // const employees = await this.buildEmployeesArray();
+            // console.log(`***************************`);
+            // console.table(employees.map((employee) => employee.toArray()));
+        }
+        catch (error) {
+            console.error("Error fetching employees:", error);
+        }
         this.startCli();
     }
-    createEmployee() {
+    async createEmployee() {
         inquirer
             .prompt([
             {
@@ -55,15 +69,13 @@ class Cli {
             },
         ])
             .then((answers) => {
-            const employee = new Employee(answers.firstName, answers.lastName, answers.roleID, answers.managerID);
-            console.log("********** Before insertEmployee **********");
-            this.viewEmployees();
-            this.employees.push(employee);
-            insertEmployee(answers.firstName, answers.lastName, answers.roleID, answers.managerID);
-            console.log("********** After insertEmployee **********");
-            this.viewEmployees();
-            this.startCli();
+            this.createEmployeeFromAnswers(answers);
         });
+    }
+    async createEmployeeFromAnswers(answers) {
+        await insertEmployee(answers.firstName, answers.lastName, answers.roleID, answers.managerID);
+        this.viewEmployees();
+        this.startCli();
     }
     startCli() {
         inquirer

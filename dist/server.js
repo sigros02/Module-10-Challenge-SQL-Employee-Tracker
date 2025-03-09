@@ -15,8 +15,25 @@ app.listen(PORT, () => {
 });
 export const selectAllEmployees = async () => {
     try {
-        const result = await pool.query("SELECT * FROM employee");
-        return result.rows;
+        // if manager is null, manager.name = null
+        // if manager is null coalesce(manager.name, 'no manager') = 'no manager'
+        const result = await pool.query(`SELECT 
+        E.Id AS employeeID, 
+        E.first_name AS firstName, 
+        E.last_name AS lastName,  
+        R.title AS title, 
+        D.name AS department, 
+        R.salary AS salary,
+        E.manager_id AS managerID,
+        COALESCE(CONCAT(M.first_name, ' ', M.last_name), 'No Manager') AS managerName
+      FROM employee E
+        INNER JOIN role R ON E.role_id = R.id
+        INNER JOIN department D ON R.department_id = D.id
+        LEFT JOIN employee M ON E.manager_id = M.id`);
+        console.log(result.rows[0]);
+        console.log(`++++++++++++++++++++++++++++++++++++++++++`);
+        console.table(result.rows);
+        return result;
     }
     catch (err) {
         console.error(err);
