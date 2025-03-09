@@ -2,7 +2,10 @@ import inquirer from "inquirer";
 import Employee from "./Employee.js";
 import Role from "./role.js";
 import Department from "./department.js";
-import { selectAllEmployees, insertEmployee, selectAllRoles, insertRole, selectAllDepartments, insertDepartment, } from "../server.js";
+import { selectAllEmployees, insertEmployee, selectAllRoles, insertRole, selectAllDepartments, insertDepartment, updateEmployeeRole, } from "../server.js";
+/*
+Need to revisit this project and implement department, role and employee classes
+*/
 class Cli {
     async buildEmployeesArray() {
         const result = await selectAllEmployees();
@@ -33,7 +36,7 @@ class Cli {
         }
         this.startCli();
     }
-    async createManagerChoices() {
+    async createEmployeeChoices() {
         let choices = [];
         try {
             const results = await selectAllEmployees();
@@ -67,7 +70,7 @@ class Cli {
         return choices;
     }
     async createEmployeePrompt() {
-        const managers = await this.createManagerChoices();
+        const employees = await this.createEmployeeChoices();
         const roles = await this.createRoleChoices();
         inquirer
             .prompt([
@@ -91,7 +94,7 @@ class Cli {
                 type: "list",
                 name: "managerID",
                 message: "Select the employee's manager",
-                choices: managers,
+                choices: employees,
             },
         ])
             .then((answers) => {
@@ -100,6 +103,32 @@ class Cli {
     }
     async createEmployeeFromAnswers(answers) {
         await insertEmployee(answers.firstName, answers.lastName, answers.roleID, answers.managerID);
+        this.viewEmployees();
+    }
+    async updateEmployeeRolePrompt() {
+        const employees = await this.createEmployeeChoices();
+        const roles = await this.createRoleChoices();
+        inquirer
+            .prompt([
+            {
+                type: "list",
+                name: "employeeID",
+                message: "What is the name of the employee",
+                choices: employees,
+            },
+            {
+                type: "list",
+                name: "roleID",
+                message: "What is the updated role?",
+                choices: roles,
+            },
+        ])
+            .then((answers) => {
+            this.updateEmployeeRoleFromAnswers(answers);
+        });
+    }
+    async updateEmployeeRoleFromAnswers(answers) {
+        await updateEmployeeRole(answers.employeeID, answers.roleID);
         this.viewEmployees();
     }
     async viewRoles() {
@@ -195,6 +224,7 @@ class Cli {
                 choices: [
                     "View all employees",
                     "Create a new employee",
+                    "Update employee role",
                     "View all roles",
                     "Create a new role",
                     "View all departments",
@@ -211,6 +241,9 @@ class Cli {
                 case "Create a new employee":
                     this.createEmployeePrompt();
                     break;
+                case "Update employee role":
+                    this.updateEmployeeRolePrompt();
+                    break;
                 case "View all roles":
                     this.viewRoles();
                     break;
@@ -224,19 +257,6 @@ class Cli {
                     this.createDepartmentPrompt();
                     break;
             }
-            // if (answers.Options === "View all employees") {
-            //   this.viewEmployees();
-            // } else if (answers.Options === "Create a new employee") {
-            //   this.createEmployeePrompt();
-            // } else if (answers.Options === "View all roles") {
-            //   this.viewRoles();
-            // } else if (answers.Options === "Create a new role") {
-            //   this.createRolePrompt();
-            // } else if (answers.Options === "View all departments") {
-            //   this.viewDepartments();
-            // } else if (answers.Options === "Create a new department") {
-            //   this.createDepartmentPrompt();
-            // }
         });
     }
 }

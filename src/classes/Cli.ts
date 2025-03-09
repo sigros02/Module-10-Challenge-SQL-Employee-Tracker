@@ -9,6 +9,7 @@ import {
   insertRole,
   selectAllDepartments,
   insertDepartment,
+  updateEmployeeRole,
 } from "../server.js";
 
 /*
@@ -53,7 +54,7 @@ class Cli {
     this.startCli();
   }
 
-  async createManagerChoices(): Promise<{ name: string; value: number }[]> {
+  async createEmployeeChoices(): Promise<{ name: string; value: number }[]> {
     let choices: { name: string; value: number }[] = [];
     try {
       const results = await selectAllEmployees();
@@ -87,7 +88,7 @@ class Cli {
   }
 
   async createEmployeePrompt(): Promise<void> {
-    const managers = await this.createManagerChoices();
+    const employees = await this.createEmployeeChoices();
     const roles = await this.createRoleChoices();
     inquirer
       .prompt([
@@ -111,7 +112,7 @@ class Cli {
           type: "list",
           name: "managerID",
           message: "Select the employee's manager",
-          choices: managers,
+          choices: employees,
         },
       ])
       .then((answers) => {
@@ -126,6 +127,34 @@ class Cli {
       answers.roleID,
       answers.managerID
     );
+    this.viewEmployees();
+  }
+
+  async updateEmployeeRolePrompt(): Promise<void> {
+    const employees = await this.createEmployeeChoices();
+    const roles = await this.createRoleChoices();
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "employeeID",
+          message: "What is the name of the employee",
+          choices: employees,
+        },
+        {
+          type: "list",
+          name: "roleID",
+          message: "What is the updated role?",
+          choices: roles,
+        },
+      ])
+      .then((answers) => {
+        this.updateEmployeeRoleFromAnswers(answers);
+      });
+  }
+
+  async updateEmployeeRoleFromAnswers(answers: any): Promise<void> {
+    await updateEmployeeRole(answers.employeeID, answers.roleID);
     this.viewEmployees();
   }
 
@@ -226,6 +255,7 @@ class Cli {
           choices: [
             "View all employees",
             "Create a new employee",
+            "Update employee role",
             "View all roles",
             "Create a new role",
             "View all departments",
@@ -241,6 +271,9 @@ class Cli {
             break;
           case "Create a new employee":
             this.createEmployeePrompt();
+            break;
+          case "Update employee role":
+            this.updateEmployeeRolePrompt();
             break;
           case "View all roles":
             this.viewRoles();

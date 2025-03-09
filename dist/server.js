@@ -15,8 +15,6 @@ app.listen(PORT, () => {
 });
 export const selectAllEmployees = async () => {
     try {
-        // if manager is null, manager.name = null
-        // if manager is null coalesce(manager.name, 'no manager') = 'no manager'
         const result = await pool.query(`SELECT 
         E.Id AS employeeID, 
         E.first_name AS firstName, 
@@ -29,7 +27,8 @@ export const selectAllEmployees = async () => {
       FROM employee E
         INNER JOIN role R ON E.role_id = R.id
         INNER JOIN department D ON R.department_id = D.id
-        LEFT JOIN employee M ON E.manager_id = M.id`);
+        LEFT JOIN employee M ON E.manager_id = M.id
+        ORDER by E.id`);
         return result;
     }
     catch (err) {
@@ -41,6 +40,20 @@ export const insertEmployee = async (firstName, lastName, roleID, managerID) => 
     try {
         await pool.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)", [firstName, lastName, roleID, managerID]);
         console.log("Employee added successfully");
+    }
+    catch (err) {
+        console.error(err);
+    }
+};
+export const updateEmployeeRole = async (employeeID, roleID) => {
+    try {
+        console.log(`++++++++++++++++++++++++++++++++++++++++++`);
+        console.log(`employeeID: ${employeeID}}, roleID: ${roleID}`);
+        await pool.query(`UPDATE employee
+        SET role_id = $2
+      WHERE 
+        id = $1`, [employeeID, roleID]);
+        console.log("Employee role updated successfully");
     }
     catch (err) {
         console.error(err);
