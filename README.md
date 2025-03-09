@@ -1,3 +1,5 @@
+[Link to to a demonstration video of the application](https://drive.google.com/file/d/1opTjgO8OcFpjwxZYUk-5rzDkDXqPvLKc/view?usp=sharing)
+
 # 10 SQL: Employee Tracker
 
 ## Your Task
